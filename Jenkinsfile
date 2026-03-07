@@ -42,13 +42,18 @@ pipeline {
                 sshPublisher(publishers: [
                     sshPublisherDesc(
                         configName: 'aliyun_ecs',
-                        // 关键：把 execCommand 换成 exec 数组
-                        exec: [
-                            'cd /root/my-app',
-                            'docker stop my-app || true',
-                            'docker rm my-app || true',
-                            'docker build -t my-app:latest .',
-                            'docker run -d -p 80:8080 --name my-app my-app:latest'
+                        transfers: [
+                            sshTransfer(
+                                sourceFiles: '', // 不传输文件，只执行命令
+                                remoteDirectory: '',
+                                execCommand: '''
+                                    cd /root/my-app
+                                    docker stop my-app || true
+                                    docker rm my-app || true
+                                    docker build -t my-app:latest .
+                                    docker run -d -p 80:8080 --name my-app my-app:latest
+                                '''
+                            )
                         ],
                         verbose: true
                     )
