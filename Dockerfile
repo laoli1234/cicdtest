@@ -1,5 +1,10 @@
-FROM openjdk:17-jre-slim
+# 原写法
+# FROM openjdk:17-jre-slim
+
+# 新写法（使用阿里云的镜像）
+FROM registry.cn-hangzhou.aliyuncs.com/library/openjdk:17-jre-slim
+
 WORKDIR /app
 COPY app.jar /app/app.jar
-EXPOSE 8080
-CMD ["java", "-jar", "/app/app.jar"]
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
