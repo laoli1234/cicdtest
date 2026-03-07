@@ -2,7 +2,7 @@
 # FROM openjdk:17-jre-slim
 
 # 新写法（使用阿里云的镜像）
-FROM registry.aliyuncs.com/acs/openjdk:17-jre-slim
+FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 COPY app.jar /app/app.jar
