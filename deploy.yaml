@@ -16,7 +16,7 @@ spec:
       containers:
         - name: github-app
           # 替换为你的ACR镜像地址，${BUILD_NUMBER}是Jenkins构建号
-          image: registry.cn-hangzhou.aliyuncs.com/laoli_k8s/my-app:APP_VERSION
+          image: registry-vpc.cn-hangzhou.aliyuncs.com/laoli_k8s/my-app:APP_VERSION
           ports:
             - containerPort: 8080  # 替换为你的应用端口
           resources:
