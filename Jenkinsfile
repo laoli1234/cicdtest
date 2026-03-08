@@ -35,20 +35,20 @@ pipeline {
                                 // 上传Jar包到ECS的/root/my-app目录
                                 sshTransfer(
                                     sourceFiles: "${JAR_PATH}",
-                                    remoteDirectory: 'my-app',  // 对应/root/my-app
-                                    flatten: true,  // 直接放my-app目录，不创建target子目录
+                                    remoteDirectory: '',  // 不填，默认使用Jenkins中配置的remote Directory
+                                    flatten: true,  // 直接放在目标目录，不创建target子目录
                                     cleanRemote: false
                                 ),
                                 // 上传Dockerfile到ECS的/root/my-app目录
                                 sshTransfer(
                                     sourceFiles: 'Dockerfile',
-                                    remoteDirectory: 'my-app',
+                                    remoteDirectory: '',
                                     flatten: true
                                 ),
                                 // 上传deploy.yaml到ECS的/root/my-app目录
                                 sshTransfer(
                                     sourceFiles: 'deploy.yaml',
-                                    remoteDirectory: 'my-app',
+                                    remoteDirectory: '',
                                     flatten: true
                                 )
                             ]
@@ -73,19 +73,20 @@ pipeline {
                         publishers: [
                             sshPublisherDesc(
                                 configName: "${JUMP_HOST}",
-                                execCommand: """
-                                    # 进入ECS的目标目录
-                                    cd ${ECS_APP_DIR}
-                                    # 重命名Jar包为app.jar（避免名称不一致）
-                                    mv *.jar app.jar
-                                    # 登录ACR + 构建镜像 + 推送
-                                    docker login registry.cn-hangzhou.aliyuncs.com -u ${ACR_USER} -p ${ACR_PWD}
-                                    docker build -t ${ACR_IMAGE} .
-                                    docker push ${ACR_IMAGE}
-                                    # 清理本地镜像（可选）
-                                    # docker rmi ${ACR_IMAGE}
-                                    docker logout registry.cn-hangzhou.aliyuncs.com
-                                """
+                                transfers: [],
+                                execCommands: [
+                                    // 进入ECS的目标目录
+                                    "cd ${ECS_APP_DIR}",
+                                    // 重命名Jar包为app.jar（避免名称不一致）",
+                                    "mv *.jar app.jar",
+                                    // 登录ACR + 构建镜像 + 推送
+                                    "docker login registry.cn-hangzhou.aliyuncs.com -u ${ACR_USER} -p ${ACR_PWD}",
+                                    "docker build -t ${ACR_IMAGE} .",
+                                    "docker push ${ACR_IMAGE}",
+                                    // 清理本地镜像（可选）
+                                    // docker rmi ${ACR_IMAGE}",
+                                    "docker logout registry.cn-hangzhou.aliyuncs.com   "
+                                ],verbose: true
                             )
                         ]
                     )
@@ -101,16 +102,17 @@ pipeline {
                     publishers: [
                         sshPublisherDesc(
                             configName: "${JUMP_HOST}",
-                            execCommand: """
-                                cd ${ECS_APP_DIR}
-                                # 替换deploy.yaml中的镜像版本号
-                                sed -i 's/\\\${BUILD_NUMBER}/${BUILD_NUMBER}/g' deploy.yaml
-                                # 部署到K8s
-                                kubectl apply -f deploy.yaml
-                                echo "✅ 部署完成，查看状态："
-                                kubectl get pods -n default | grep github-app
-                                kubectl get svc -n default | grep github-app-service
-                            """
+                            transfers: [],
+                            execCommands: [
+                                "cd ${ECS_APP_DIR}",
+                                // 替换deploy.yaml中的镜像版本号
+                                "sed -i 's/\\\${BUILD_NUMBER}/${BUILD_NUMBER}/g' deploy.yaml",
+                                // 部署到K8s
+                                "kubectl apply -f deploy.yaml",
+                                "echo '✅ 部署完成，查看状态：'",
+                                "kubectl get pods -n default | grep github-app",
+                                "kubectl get svc -n default | grep github-app-service"
+                            ],verbose: true
                         )
                     ]
                 )
