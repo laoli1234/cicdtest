@@ -11,6 +11,6 @@ public class HelloController {
     @GetMapping("/")
     public String sayHello() {
         // 返回"hello"，浏览器访问时就会显示这个内容
-        return "hello this is springboot from aliyun k8s by lty ！！！";
+        return "！！！hello this is springboot from aliyun k8s by lty ！！！";
     }
 }
