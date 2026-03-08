@@ -73,20 +73,26 @@ pipeline {
                         publishers: [
                             sshPublisherDesc(
                                 configName: "${JUMP_HOST}",
-                                transfers: [],
-                                execCommands: [
-                                    // 进入ECS的目标目录
-                                    "cd ${ECS_APP_DIR}",
-                                    // 重命名Jar包为app.jar（避免名称不一致）",
-                                    "mv *.jar app.jar",
-                                    // 登录ACR + 构建镜像 + 推送
-                                    "docker login registry.cn-hangzhou.aliyuncs.com -u ${ACR_USER} -p ${ACR_PWD}",
-                                    "docker build -t ${ACR_IMAGE} .",
-                                    "docker push ${ACR_IMAGE}",
-                                    // 清理本地镜像（可选）
-                                    // docker rmi ${ACR_IMAGE}",
-                                    "docker logout registry.cn-hangzhou.aliyuncs.com   "
-                                ],verbose: true
+                                transfers: [
+                                    sshTransfer(
+                                        sourceFiles: '', // 不传输文件，只执行命令
+                                        remoteDirectory: '',
+                                        execCommand: '''
+                                            # 进入ECS的目标目录
+                                            cd ${ECS_APP_DIR}
+                                            # 重命名Jar包为app.jar（避免名称不一致）
+                                            mv *.jar app.jar
+                                            # 登录ACR + 构建镜像 + 推送
+                                            docker login registry.cn-hangzhou.aliyuncs.com -u ${ACR_USER} -p ${ACR_PWD}
+                                            docker build -t ${ACR_IMAGE} .
+                                            docker push ${ACR_IMAGE}
+                                            # 清理本地镜像（可选）
+                                            # docker rmi ${ACR_IMAGE}
+                                            docker logout registry.cn-hangzhou.aliyuncs.com
+                                        '''
+                                    )
+                                ],
+                                verbose: true
                             )
                         ]
                     )
