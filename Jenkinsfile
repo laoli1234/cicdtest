@@ -2,7 +2,9 @@ pipeline {
     agent any
     environment {
         // ========== 仅需替换这3处！==========
-        ACR_IMAGE = "registry.cn-hangzhou.aliyuncs.com/laoli_k8s/my-app:${BUILD_NUMBER}"
+        // 先读取version文件的版本号（核心修改）
+        APP_VERSION = readFile('VERSION').trim()  // 读取文件并去除首尾空格/换行
+        ACR_IMAGE = "registry.cn-hangzhou.aliyuncs.com/laoli_k8s/my-app:${APP_VERSION}"
         ACR_CRED_ID = "aliyun-acr-cred"  // Jenkins中ACR凭证ID
         JUMP_HOST = "aliyun_ecs"         // Jenkins中配置的跳板机SSH名称
         // Jar包路径（Jenkins打包后生成的路径，默认target/*.jar）
@@ -83,8 +85,7 @@ pipeline {
                                             export ACR_IMAGE="${ACR_IMAGE}"
                                             export ACR_USER="${ACR_USER}"
                                             export ACR_PWD="${ACR_PWD}"
-                                            export BUILD_NUMBER="${BUILD_NUMBER}"
-                                            
+
                                             # 进入ECS的目标目录
                                             cd \$ECS_APP_DIR || exit 1
                                             # 先清理旧的app.jar，避免重命名警告
@@ -125,13 +126,13 @@ pipeline {
                                     execCommand: """
                                         # 1. 显式定义ECS需要的环境变量（从Jenkins传递值）
                                         export ECS_APP_DIR="${ECS_APP_DIR}"
-                                        export BUILD_NUMBER="${BUILD_NUMBER}"
+                                        export APP_VERSION="${APP_VERSION}"
             
                                         # 2. 进入目标目录，失败则退出
                                         cd \$ECS_APP_DIR || exit 1
             
-                                        # 3. 替换deploy.yaml中的${BUILD_NUMBER}占位符（修正转义）
-                                        sed -i 's/\\\${BUILD_NUMBER}/\$BUILD_NUMBER/g' deploy.yaml
+                                        # 3. 替换deploy.yaml中的${APP_VERSION}占位符（修正转义）
+                                        sed -i "s/APP_VERSION/\$APP_VERSION/g" deploy.yaml
             
                                         # 4. 部署到K8s并查看状态
                                         kubectl apply -f deploy.yaml
