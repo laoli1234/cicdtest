@@ -11,6 +11,6 @@ public class HelloController {
     @GetMapping("/")
     public String sayHello() {
         // 返回"hello"，浏览器访问时就会显示这个内容
-        return "hello !!! this is spring boot by lty,修改2次代码，自动触发测试2";
+        return "hello !!! this is spring boot by lty,修改3次代码，自动触发测试3";
     }
 }
