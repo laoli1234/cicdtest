@@ -83,7 +83,8 @@ pipeline {
                                             # 重命名Jar包为app.jar（避免名称不一致）
                                             mv *.jar app.jar
                                             # 登录ACR + 构建镜像 + 推送
-                                            docker login registry.cn-hangzhou.aliyuncs.com -u ${ACR_USER} -p ${ACR_PWD}
+                                            echo "${ACR_PWD}" | docker login registry.cn-hangzhou.aliyuncs.com -u "${ACR_USER}" --password-stdin
+                                            echo "开始构建镜像${ACR_IMAGE}"
                                             docker build -t ${ACR_IMAGE} .
                                             docker push ${ACR_IMAGE}
                                             # 清理本地镜像（可选）
